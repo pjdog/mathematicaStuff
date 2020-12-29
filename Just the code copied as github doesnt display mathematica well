@@ -1,0 +1,1816 @@
+ClearAll
+
+<< ToMatlab.m
+
+?ToMatlab
+
+secular variations and other useful preliminaries
+
+\[Sigma]1[q_, p_] := Sqrt[q^2 + p^2];
+\[Sigma]2[q_, p_] := 1 + \[Sigma]1[q, p]^2;
+\[Sigma]3[q_, p_]  := 1 - \[Sigma]1[q, p]^2;
+\[Sigma]10[q0_, p0_] := \[Sigma]1[q0, p0];
+\[Sigma]20[q0_, p0_] := \[Sigma]2[q0, p0];
+\[Sigma]30[q0_, p0_] := \[Sigma]3[q0, p0];
+\[Eta]0[q0_, p0_] := Sqrt[1 - q0^2 - p0^2];
+\[Alpha][J2_ , rE_] := 3*J2*rE^2;
+
+
+a[n_, \[Mu]_] := Power[\[Mu]/n^2, (3)^-1];
+a0[n0_, \[Mu]_] := Power[\[Mu]/n0^2, (3)^-1];
+
+\[CurlyPi]sdot[n0_, k0_, h0_, q0_, p0_, lm0_, n_, k_, h_, q_, p_, lm_, 
+   dt_, \[Mu]_, rE_, J2_] := \[Alpha][J2 , rE]/4*(
+   Sqrt[\[Mu]]*(5*\[Sigma]30[q0, p0]^2 - 
+      2*\[Sigma]20[q0, p0]*\[Sigma]30[q0, p0] - \[Sigma]20[q0, p0]^2))/((
+    a0[n0, \[Mu]]^(7/2))*(\[Eta]0[q0, p0]^4)*(\[Sigma]20[q0, p0]^2) );
+\[CapitalLambda]sdot[n0_, k0_, h0_, q0_, p0_, lm0_, n_, k_, h_, q_, p_, lm_, 
+   dt_, \[Mu]_, rE_, J2_] := 
+  Sqrt[\[Mu]]/a0[n0, \[Mu]]^(
+   3/2) + \[Alpha][J2 , rE]/
+    4*((Sqrt[\[Mu]]*((1 + \[Eta]0[q0, 
+              p0])*(3*\[Sigma]30[q0, p0]^2 - \[Sigma]20[q0, p0]^2) - 
+          2*\[Sigma]10[q0, p0]^2*\[Sigma]30[q0, p0]))/(a0[n0, \[Mu]]^(
+        7/2)*\[Eta]0[q0, p0]^3*\[Sigma]20[q0, p0]^2 ));
+\[Omega]sdot[n0_, k0_, h0_, q0_, p0_, lm0_, n_, k_, h_, q_, p_, lm_, 
+   dt_, \[Mu]_, rE_, J2_] := \[Alpha][J2 , rE]/4*(
+   Sqrt[\[Mu]]*(5*\[Sigma]30[q0, p0]^2 - \[Sigma]20[q0, p0]^2))/((
+    a0[n0, \[Mu]]^(7/2))*(\[Eta]0[q0, p0]^4)*(\[Sigma]20[q0, p0]^2) );
+Osdot[n0_, k0_, h0_, q0_, p0_, lm0_, n_, k_, h_, q_, p_, lm_, dt_, \[Mu]_, 
+   rE_, J2_] := -\[Alpha][J2 , rE]/2*(Sqrt[\[Mu]]*\[Sigma]30[q0, p0])/(
+   a0[n0, \[Mu]]^(7/2)*\[Eta]0[q0, p0]^4*\[Sigma]20[q0, p0]);
+
+Osdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, dt, \[Mu], rE, J2]
+
+Msdot[n0_, k0_, h0_, q0_, p0_, lm0_, n_, k_, h_, q_, p_, lm_, dt_, \[Mu]_, 
+  rE_, J2_] := 
+ Sqrt[\[Mu]]/a0[n0, \[Mu]]^(
+  3/2) + \[Alpha][J2 , rE]/4*(
+   Sqrt[\[Mu]]*(3*\[Sigma]30[q0, p0]^2 - \[Sigma]20[q0, p0]^2))/((
+    a0[n0, \[Mu]]^(7/2))*(\[Eta]0[q0, p0]^3)*(\[Sigma]20[q0, p0]^2) )
+
+
+
+Now to update the mean variables
+
+\[CapitalLambda][n0_, k0_, h0_, q0_, p0_, lm0_, n_, k_, h_, q_, p_, lm_, 
+   dt_, \[Mu]_, rE_, J2_] := 
+  lm0 + (\[CurlyPi]sdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, dt, \[Mu],
+        rE, J2] + 
+      Msdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, dt, \[Mu], rE, J2] )*
+    dt;
+
+k[n0_, k0_, h0_, q0_, p0_, lm0_, n_, k_, h_, q_, p_, lm_, dt_, \[Mu]_, rE_, 
+   J2_] := k0*
+    Cos[(\[CurlyPi]sdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, dt, \[Mu],
+         rE, J2]*dt)] - 
+   h0*Sin[(\[CurlyPi]sdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, 
+        dt, \[Mu], rE, J2]*dt)];
+h[n0_, k0_, h0_, q0_, p0_, lm0_, n_, k_, h_, q_, p_, lm_, dt_, \[Mu]_, rE_, 
+   J2_] := k0*
+    Sin[(\[CurlyPi]sdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, dt, \[Mu],
+         rE, J2]*dt)] + 
+   h0*Cos[(\[CurlyPi]sdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, 
+        dt, \[Mu], rE, J2]*dt)];
+
+q[n0_, k0_, h0_, q0_, p0_, lm0_, n_, k_, h_, q_, p_, lm_, dt_, \[Mu]_, rE_, 
+  J2_] := q0*
+   Cos[Osdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, dt, \[Mu], rE, J2]*
+     dt] - p0*Sin[
+    Osdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, dt, \[Mu], rE, J2]*dt]
+
+p[n0_, k0_, h0_, q0_, p0_, lm0_, n_, k_, h_, q_, p_, lm_, dt_, \[Mu]_, rE_, 
+  J2_] := q0*
+   Cos[Osdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, dt, \[Mu], rE, J2]*
+     dt] + p0*Sin[
+    Osdot[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, dt, \[Mu], rE, J2]*dt]
+n[n0_] := n0;
+
+q[n0, k0, h0, q0, p0, lm0, n, k, h, q, p, lm, dt, \[Mu], rE, J2] 
+
+
+
+lm1 := OpenWrite["dlmdn0.m"];
+lm2 := OpenWrite["dlmdk0.m"];
+lm3 := OpenWrite["dlmdh0.m"];
+lm4 := OpenWrite["dlmdq0.m"];
+lm5 := OpenWrite["dlmdp0.m"];
+lm6 := OpenWrite["dlmdlm0.m"];
+
+
+
+WriteMatlab[
+  Simplify[D[\[CapitalLambda][n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm,
+      dt, mu, rE, J2], n0]], lm1, 
+  "function dlmdn0=dlmdn0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmdn0", 120];
+
+WriteMatlab[
+  Simplify[D[\[CapitalLambda][n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm,
+      dt, mu, rE, J2], k0]], lm2, 
+  "function dlmdk0=dlmdk0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmdk0", 120];
+
+
+WriteMatlab[
+  Simplify[D[\[CapitalLambda][n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm,
+      dt, mu, rE, J2], h0]], lm3, 
+  "function dlmdh0=dlmdh0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmdh0", 120];
+
+WriteMatlab[
+  Simplify[D[\[CapitalLambda][n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm,
+      dt, mu, rE, J2], q0]], lm4, 
+  "function dlmdq0=dlmdq0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmdq0", 120];
+
+
+WriteMatlab[
+  Simplify[D[\[CapitalLambda][n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm,
+      dt, mu, rE, J2], p0]], lm5, 
+  "function dlmdtdp0=dlmdtdp0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmtdp0", 120];
+
+
+WriteMatlab[
+  Simplify[D[\[CapitalLambda][n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm,
+      dt, mu, rE, J2], lm0]], lm6, 
+  "function dlmdlm0=dlmdlm0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmdlm0"];
+
+Close[lm1]; Close[lm2]; Close[lm3]; Close[lm4]; Close[lm5]; Close[lm6]
+
+k1 := OpenWrite["dkdn0.m"];
+k2 := OpenWrite["dkdk0.m"];
+k3 := OpenWrite["dkdh0.m"];
+k4 := OpenWrite["dkdq0.m"];
+k5 := OpenWrite["dkdp0.m"];
+k6 := OpenWrite["dkdlm0.m"];
+
+WriteMatlab[
+  Simplify[D[
+    k[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], n0]], 
+  k1, "function dkdn0=dkdn0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dkdn0", 120];
+
+WriteMatlab[
+  Simplify[D[
+    k[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], k0]], 
+  k2, "function dkdk0=dkdk0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dkdk0", 120];
+
+WriteMatlab[
+  Simplify[D[
+    k[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], h0]], 
+  k3, "function dkdh0=dkdh0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dkdh0", 120];
+
+WriteMatlab[
+  Simplify[D[
+    k[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], q0]], 
+  k4, "function dkdq0=dkdq0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dkdq0", 120];
+
+WriteMatlab[
+  Simplify[D[
+    k[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], p0]], 
+  k5, "function dkdp0=dkdp0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dkdp0", 120];
+
+WriteMatlab[
+  Simplify[D[
+    k[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], lm0]],
+   k6, "function dkdk0=dkdlm0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dkdlm0", 120];
+
+Close[k1]; Close[k2]; Close[k3]; Close[k4]; Close[k5]; Close[k6];
+
+
+h1 := OpenWrite["dhdn0.m"];
+h2 := OpenWrite["dhdk0.m"];
+h3 := OpenWrite["dhdh0.m"];
+h4 := OpenWrite["dhdq0.m"];
+h5 := OpenWrite["dhdp0.m"];
+h6 := OpenWrite["dhdlm0.m"];
+WriteMatlab[
+  Simplify[D[
+    h[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], n0]], 
+  h1, "function dhdn0=dhdn0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dhdn0", 120];
+WriteMatlab[
+  Simplify[D[
+    h[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], k0]], 
+  h2, "function dhdk0=dhdk0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dhdk0", 120];
+WriteMatlab[
+  Simplify[D[
+    h[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], h0]], 
+  h3, "function dhdh0=dhdh0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dhdh0", 120];
+WriteMatlab[
+  Simplify[D[
+    h[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], q0]], 
+  h4, "function dhdq0=dhdq0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dhdq0", 120];
+WriteMatlab[
+  Simplify[D[
+    h[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], p0]], 
+  h5, "function dhdp0=dhdp0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dhdp0", 120];
+WriteMatlab[
+  Simplify[D[
+    h[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], lm0]],
+   h6, "function dhdk0=dhdlm0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dhdlm0", 120];
+Close[h1]; Close[h2]; Close[h3]; Close[h4]; Close[h5]; Close[h6];
+
+
+
+
+q1 := OpenWrite["dqdn0.m"];
+q2 := OpenWrite["dqdk0.m"];
+q3 := OpenWrite["dqdh0.m"];
+q4 := OpenWrite["dqdq0.m"];
+q5 := OpenWrite["dqdp0.m"];
+q6 := OpenWrite["dqdlm0.m"];
+
+WriteMatlab[
+  Simplify[D[
+    q[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], n0]], 
+  q1, "function dqdn0=dqdn0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dqdn0", 120];
+
+WriteMatlab[
+  Simplify[D[
+    q[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], k0]], 
+  q2, "function dqdk0=dkqdk0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dqdk0", 120];
+
+WriteMatlab[
+  Simplify[D[
+    q[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], h0]], 
+  q3, "function dqdh0=dqdh0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dqdh0", 120];
+
+WriteMatlab[
+  Simplify[D[
+    q[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], q0]], 
+  q4, "function dqdq0=dqdq0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dqdq0", 120];
+
+WriteMatlab[
+  Simplify[D[
+    q[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], p0]], 
+  q5, "function dqdp0=dqdp0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dqdp0", 120];
+
+WriteMatlab[
+  Simplify[D[
+    q[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], lm0]],
+   q6, "function dqdk0=dkqdlm0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dqdlm0", 120];
+
+Close[q1]; Close[q2]; Close[q3]; Close[q4]; Close[q5]; Close[q6];
+
+
+p1 := OpenWrite["dpdn0.m"];
+p2 := OpenWrite["dpdk0.m"];
+p3 := OpenWrite["dpdh0.m"];
+p4 := OpenWrite["dpdq0.m"];
+p5 := OpenWrite["dpdp0.m"];
+p6 := OpenWrite["dpdlm0.m"];
+WriteMatlab[
+  Simplify[D[
+    p[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], n0]], 
+  p1, "function dpdn0:=dpdn0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dpdn0", 120];
+
+
+
+WriteMatlab[
+  Simplify[D[
+    p[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], k0]], 
+  p2, "function dpdk0=dpdk0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dpdk0", 120];
+WriteMatlab[
+  Simplify[D[
+    p[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], h0]], 
+  p3, "function dpdh0=dpdh0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dpdh0", 120];
+WriteMatlab[
+  Simplify[D[
+    p[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], q0]], 
+  p4, "function dpdq0=dpdq0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dpdq0", 120];
+WriteMatlab[
+  Simplify[D[
+    p[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], p0]], 
+  p5, "function dpdp0=dpdp0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dpdp0", 120];
+WriteMatlab[
+  Simplify[D[
+    p[n0, k0, h0, q0, p0, lm0, n1, k1, h1, q1, p1, lm, dt, mu, rE, J2], lm0]],
+   p6, "function dpdk0=dpdlm0(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dpdlm0"];
+Close[p1]; Close[p2]; Close[p3]; Close[p4]; Close[p5]; Close[p6];
+
+
+
+
+
+
+Now we'll do the mean to oscillating transfromation, so we need to find the delaunay variables (l is mean anom, g is arg of perigee and h is raan))
+
+L[n_, \[Mu]_] := Sqrt[\[Mu]*a[n, \[Mu]]];
+e[h_, k_] := Sqrt[h^2 + k^2];
+
+G[n_, \[Mu]_, h_, k_] := L[n, \[Mu]]*(1 - e[h, k]^2)^(1/2);
+
+i[p_, q_] := 2*ArcTan[p^2 + q^2];
+H [n_, \[Mu]_, h_, k_, p_, q_] := G[n, \[Mu], h, k]*Cos[i[p, q]]
+xsi[h_, k_] := ArcTan[h/k];
+l[h_, k_, lm_] := lm - xsi[h, k];
+g[q_, p_] := ArcTan[p/q];
+hDel[h_, k_, q_, p_] := Simplify[xsi[h, k] - g[p, q]]
+
+f[h_, k_, q_, p_, lm_] := 
+  l[h, k, lm] + (2*e[h, k] - e[h, k]^3/4)*Sin[l[h, k, lm]] + 
+   5/4*e[h, k]^2*Sin[2*l[h, k, lm]] + 13/12*e[h, k]^3*Sin[3*l[h, k, lm]];
+
+
+
+W1lp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, 
+  lm_] := -(1/(32*G1^3))*(1 - G1^2/L1^2)*(1 - 5*H1^2/G1^2)^-1*(1 - 
+    16*H1^2/G1^2 + 15*H1^4/G1^4)*Sin[2*g1]
+
+W1sp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, 
+   lm_] := (1/(
+    4*G1^3))*(-1 + 3*H1^2/G1^2)*(f[h, k, q, p, lm] - 1 + 
+     e[h, k]*Sin[f[h, k, q, p, lm]]);
+
+W1sp2[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, 
+   lm_] := (3/(
+    8*G1^3))*(1 - H1^2/G1^2)*(Sin[2*f[h, k, q, p, lm] + 2*g1] + 
+     e[h, k]*Sin[f[h, k, q, p, lm] + 2*g1] + 
+     e[h, k]/3*Sin[3*f[h, k, q, p, lm] + 2*g1]);
+
+W [l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_] := 
+  W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm] + 
+   W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm] + 
+   W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm];
+
+W [l_, g_, hDel_, L_, G_, H_, n_, h_, k_, q_, p_, lm_]
+
+Lagrange Bracket to get the mean to oscillating transformation and then the  D matrix
+
+Lets to the derivatives of ei with respect to l,g,h,L,G &H (hDel is named that way to keep it from being confusing)
+
+dndL[n_, mu_] = Simplify[1/D[L[n, mu], n]];
+
+
+
+dndG[n_, mu_, k_, h_] = Simplify[1/D[G[n, mu, h, k], n]]
+
+dndH [n_, mu_, h_, k_, p_, q_] = Simplify[1/D[H[n, mu, h, k, p, q], n]];
+
+
+
+
+
+dkdG[n_, mu_, k_, h_] = Simplify[1/D[G[n, mu, h, k], k]];
+
+dkdH [n_, mu_, h_, k_, p_, q_] = Simplify[1/D[H[n, mu, h, k, p, q], k]];
+
+
+
+dhdG[n_, mu_, k_, h_] = Simplify[1/D[G[n, mu, h, k], h]];
+
+dhdH [n_, mu_, h_, k_, p_, q_] = Simplify[1/D[H[n, mu, h, k, p, q], h]];
+
+
+
+dpdH [n_, mu_, h_, k_, p_, q_] = Simplify[1/D[H [n, mu, h, k, p, q], p]];
+
+dpdH [n_, mu_, h_, k_, p_, q_]
+
+dqdH [n_, mu_, h_, k_, p_, q_] = Simplify[1/D[H [n, mu, h, k, p, q], q]];
+dhdl[h_, k_, lm_] = Simplify[1/D[l[h, k, lm] , h]];
+dkdl[h_, k_, lm_] = Simplify[1/D[l[h, k, lm] , k]];
+dlmdl[h_, k_, lm_] = Simplify[1/D[l[h, k, lm], lm]];
+dqdg[q_, p_] = Simplify[1/D[g[q, p], q]]; 
+dpdg[q_, p_] = Simplify[1/D[g[q, p], p]];
+
+dhdhDel[h_, k_, q_, p_] = Simplify[1/D[hDel [h, k, q, p], h]];
+dkdhDel[h_, k_, q_, p_] = Simplify[1/D[hDel [h, k, q, p], k]];
+dqdhDel[h_, k_, q_, p_] = Simplify[1/D[hDel [h, k, q, p], q]];
+dpdhDel[h_, k_, q_, p_] = Simplify[1/D[hDel [h, k, q, p], p]];
+
+Mean to Oscillating Transformation Long period  portion
+
+nW1lp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, 
+   mu_] := -dndL[n, mu]*
+    D[W1lp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], l1] - 
+   dndG[n, mu, k, h]*
+    D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], g1] - 
+   dndH [n, mu, h, k, p, q]*
+    D[W1lp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+
+
+hW1lp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+  dhdhDel[h, k, q, p]*
+    D[W1lp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1] + 
+   dhdl[h, k, lm]*D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], L1] -
+    dhdG[n, mu, k, h]*
+    D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], g1] - 
+   dhdH [n, mu, h, k, p, q]*
+    D[W1lp1 [l, g, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+kW1lp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+  dkdhDel[h, k, q, p]*
+    D[W1lp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1] + 
+   dkdl[h, k, lm]*D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], L1] -
+    dkdG[n, mu, k, h]*
+    D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], g1] - 
+   dkdH [n, mu, h, k, p, q]*
+    D[W1lp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+qW1lp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+  dqdg[q, p]*D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], G1] + 
+   dqdhDel[h, k, q, p]*
+    D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1] - 
+   dqdH [n, mu, h, k, p, q]*
+    D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+pW1lp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] :=
+  dpdg[q, p]*D[W1lp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], G1] + 
+   dpdhDel[n, mu, k, h]*
+    D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1] + 
+   dpdH [n, mu, h, k, p, q]*
+    D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+lmW1lp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+  dlmdl[h, k, lm]*D[W1lp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], L1];
+
+Mean to oscillating transformation for the short period motion order 1
+
+nW1sp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, 
+   mu_] := -dndL[n, mu]*
+    D[W1sp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], l1] - 
+   dndG[n, mu, k, h]*
+    D[W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], g1] - 
+   dndH [n, mu, h, k, p, q]*
+    D[W1sp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+hW1sp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+  dhdhDel[h, k, q, p]*
+    D[W1sp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1] + 
+   dhdl[h, k, lm]*D[W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], L1] -
+    dhdG[n, mu, k, h]*
+    D[W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], g1] - 
+   dhdH [n, mu, h, k, p, q]*
+    D[W1sp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+kW1sp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+  dkdhDel[h, k, q, p]*
+    D[W1sp1 [l1, g1, hDel1, L1, G1, H, n, h, k, q, p, lm], H] + 
+   dkdl[h, k, lm]*D[W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], L1] -
+    dkdG[n, mu, k, h]*
+    D[W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], g1] - 
+   dkdH [n, mu, h, k, p, q]*
+    D[W1sp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+qW1sp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+  dqdg[q, p]*D[W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], G1] + 
+   dqdhDel[h, k, q, p]*
+    D[W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1] - 
+   dqdH [n, mu, h, k, p, q]*
+    D[W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+pW1sp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] :=
+  dpdg[q, p]*D[W1sp1 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], G1] + 
+   dpdhDel[n, mu, k, h]*
+    D[W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1] + 
+   dpdH [n, mu, h, k, p, q]*
+    D[W1sp1[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+lmW1sp1[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+   dlmdl[h, k, lm]*D[W1sp1[l1, g1, hDel1, L1, G1, H1
+      , n, h, k, q, p, lm], L1]];
+
+
+
+Mean to oscillating transformation for the second order short period
+
+nW1sp2[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, 
+   mu_] := -dndL[n, mu]*
+    D[W1sp2 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], l1] - 
+   dndG[n, mu, k, h]*
+    D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], g1] - 
+   dndH [n, mu, h, k, p, q]*
+    D[W1sp2 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+
+
+hW1sp2[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+         dhdhDel[h, k, q, p]*
+          D[W1sp2 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1]] + 
+       dhdl[h, k, lm]*
+        D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], L1]] - 
+     dhdG[n, mu, k, h]*
+      D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], g1]] - 
+   dhdH [n, mu, h, k, p, q]*
+    D[W1sp2 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1]];
+
+kW1sp2[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+         dkdhDel[h, k, q, p]*
+          D[W1sp2 [l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1]] + 
+       dkdl[h, k, lm]*
+        D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], L1]] - 
+     dkdG[n, mu, k, h]*
+      D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], g1]] - 
+   dkdH [n, mu, h, k, p, q]*
+    D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1]];
+
+qW1sp2[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+  dqdg[q, p]*D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], G1] + 
+   dqdhDel[h, k, q, p]*
+    D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1] - 
+   dqdH [n, mu, h, k, p, q]*
+    D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1];
+
+pW1sp2[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] :=
+       dpdg[q, p]*
+        D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], G1]] + 
+     dpdhDel[n, mu, k, h]*
+      D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], H1]] + 
+   dpdH [n, mu, h, k, p, q]*
+    D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], hDel1]];
+
+
+
+
+
+lmW1sp2[l1_, g1_, hDel1_, L1_, G1_, H1_, n_, h_, k_, q_, p_, lm_, mu_] := 
+   dlmdl[h, k, lm]*
+    D[W1sp2[l1, g1, hDel1, L1, G1, H1, n, h, k, q, p, lm], L1]];
+
+Now just the  \[CapitalDelta]e  portions
+
+nOsc[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*(nW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+      G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     nW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     nW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu]);
+
+
+
+
+
+kOsc[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*(kW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+      G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     kW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     kW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu]);
+
+hOsc[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*(hW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+      G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     hW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     hW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu]);
+
+lmOsc[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*(lmW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+      G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     lmW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k],
+       H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     lmW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k],
+       H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu]);
+
+
+
+
+
+pOsc[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*(pW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+      G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     pW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     pW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu]);
+
+qOsc[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*(qW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+      G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     qW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu] + 
+     qW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu]);
+
+Now just to print those
+
+nM := OpenWrite["nMean2Osc.m"];
+kM := OpenWrite["kMean2Osc.m"];
+hM := OpenWrite["hMean2Osc.m"];
+qM := OpenWrite["qMean2Osc.m"];
+pM := OpenWrite["pMean2Osc.m"];
+lmM := OpenWrite["lmMean2Osc.m"];
+
+WriteMatlab[
+ nOsc[n, h, k, q, p, lm, mu, J2, 
+  rE], nM, "function nOsc=nMean2Osc(J2,n,k,h,p,q,lm,rE,mu)\n
+ nOsc", 120]
+nOsc[n, h, k, q, p, lm, mu, J2, rE]
+WriteMatlab[
+ kOsc[n, h, k, q, p, lm, mu, J2, 
+  rE], kM, "function kOsc=kMean2Osc(J2,n,k,h,p,q,lm,rE,mu)\n
+ kOsc", 120]
+WriteMatlab[
+ hOsc[n, h, k, q, p, lm, mu, J2, 
+  rE], hM, "function hOsc=hMean2Osc(J2,n,k,h,p,q,lm,rE,mu)\n
+ hOsc", 120]
+WriteMatlab[
+ pOsc[n, h, k, q, p, lm, mu, J2, 
+  rE], pM, "function pOsc=pMean2Osc(J2,n,k,h,p,q,lm,rE,mu)\n
+ pOsc", 120]
+WriteMatlab[
+ qOsc[n, h, k, q, p, lm, mu, J2, 
+  rE], qM, "function qOsc=qMean2Osc(J2,n,k,h,p,q,lm,rE,mu)\n
+ qOsc", 120]
+WriteMatlab[
+ lmOsc[n, h, k, q, p, lm, mu, J2, 
+  rE], lmM, "function lmOsc=lmMean2Osc(J2,n,k,h,p,q,lm,rE,mu)\n
+ lmOsc", 120]
+Close[nM]; Close[kM]; Close[hM]; Close[qM]; Close[pM]; Close[lmM];
+
+Now to do the D Matrix. Well have to start with the long period portions
+
+DnOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+J2*rE^2*D[nW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+   G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n]
+
+nW1lp1[l, g, hDel, L, G, H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE]
+
+DnOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] = 
+   J2*rE^2*D[
+     nW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+      H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h]];
+
+DnOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_]
+
+DnOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DnOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DnOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DnOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DhOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DhOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DhOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DhOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DhOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DhOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DkOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DkOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DkOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DkOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DkOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DkOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DqOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DqOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DqOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DqOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DqOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DqOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DpOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DpOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DpOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DpOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DpOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DpOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DlmOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DlmOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DlmOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DlmOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DlmOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DlmOscDlmMeanlp12[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  lmW1lp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], G[n, mu, h, k], 
+   H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE];
+
+DlmOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+ J2*rE^2*D[DlmOscDlmMeanlp12[n, h, k, q, p, lm, mu, J2, rE], lm]
+
+
+
+DlmOscDlmMeanlp1
+
+DnOscDlmMeanlp1
+
+
+
+dnOdnMlp1 := OpenWrite["dnOlp1dnM.m"];
+dnOdkMlp1 := OpenWrite["dnOlp1dkM.m"];
+dnOdhMlp1 := OpenWrite["dnOlp1dhM.m"];
+dnOdpMlp1 := OpenWrite["dnOlp1dpM.m"];
+dnOdqMlp1 := OpenWrite["dnOlp1dqM.m"];
+dnOdlmMlp1 := OpenWrite["dnOlp1dlmM.m"];
+
+
+
+WriteMatlab[DnOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dnOdnMlp1,
+   "function dnOlp1dnMO = dnOlp1dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOlp1dnMO"];
+
+WriteMatlab[DnOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dnOdhMlp1,
+   "function dnOlp1dkMO = dnOlp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOlp1dkMO"];
+
+WriteMatlab[DnOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dnOdhMlp1,
+   "function dnOlp1dhMO = dnOlp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOlp1dhMO"];
+
+WriteMatlab[DnOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dnOdpMlp1,
+   "function dnOlp1dpMO = dnOlp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOlp1dpMO"];
+
+WriteMatlab[DnOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dnOdqMlp1,
+   "function dnOlp1dqMO = dnOlp1dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOlp1dqMO"];
+
+WriteMatlab[DnOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dnOdlmMlp1, "function dnOlp1dlmMO = dnOlp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOlp1dlmMO"];
+Close[dnOdnMlp1]; Close[dnOdkMlp1]; Close[dnOdhMlp1]; Close[dnOdpMlp1]; \
+Close[dnOdqMlp1]; Close[dnOdlmMlp1];
+
+dhOdnMlp1 := OpenWrite["dhOlp1dnM.m"];
+dhOdkMlp1 := OpenWrite["dhOlp1dkM.m"];
+dhOdhMlp1 := OpenWrite["dhOlp1dhM.m"];
+dhOdpMlp1 := OpenWrite["dhOlp1dpM.m"];
+dhOdqMlp1 := OpenWrite["dhOlp1dqM.m"];
+dhOdlmMlp1 := OpenWrite["dhOlp1dlmM.m"];
+
+WriteMatlab[DhOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dhOdnMlp1,
+   "function dhOlp1dnMO = dhOlp1dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dhOlp1dnMO"];
+
+WriteMatlab[DhOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dhOdkMlp1,
+   "function dhOlp1dkMO = dhOlp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dhOlp1dkMO"];
+
+WriteMatlab[DhOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dhOdnMlp1,
+   "function dhOlp1dhMO = dhOlp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dhOlp1dhMO"];
+
+WriteMatlab[DhOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dhOdnMlp1,
+   "function dhOlp1dpMO= dhOlp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dhOlp1dpMO"];
+
+WriteMatlab[DhOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dhOdqMlp1,
+   "function dhOlp1dqMO = dhOlp1dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dhOlp1dqMO"];
+
+WriteMatlab[DhOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dhOdlmMlp1, "function dhOlp1dlmMO = dhOlp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dhOlp1dlmMO"];
+Close[dhOdnMlp1]; Close[dhOdkMlp1]; Close[dhOdhMlp1]; Close[dhOdpMlp1]; \
+Close[dhOdqMlp1]; Close[dhOdlmMlp1];
+
+dkOdnMlp1 := OpenWrite["dkOlp1dnM.m"];
+dkOdkMlp1 := OpenWrite["dkOlp1dkM.m"];
+dkOdhMlp1 := OpenWrite["dkOlp1dhM.m"];
+dkOdpMlp1 := OpenWrite["dkOlp1dpM.m"];
+dkOdqMlp1 := OpenWrite["dkOlp1dqM.m"];
+dkOdlmMlp1 := OpenWrite["dkOlp1dlmM.m"];
+
+WriteMatlab[DkOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dkOdnMlp1,
+   "function dkOlp1dnMO := dkOlp1dnM(J2,n,k,h,p,q,lm0,rE,mu)\n
+  dkOlp1dnMO"];
+
+WriteMatlab[
+ DkOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdkMlp1, "function dkOlp1dkMO = dkOlp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOlp1dkMO"]
+
+WriteMatlab[
+ DkOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdhMlp1, "function dkOlp1dhMO = dkOlp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOlp1dhMO"]
+
+WriteMatlab[
+ DkOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdpMlp1, "function dkOlp1dpMO = dkOlp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOlp1dpMO"]
+
+WriteMatlab[
+ DkOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdqMlp1, "function dkOlp1dqMO = dkOlp1dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOlp1dqMO"]
+
+WriteMatlab[
+ DnOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdlmMlp1, "function dkOlp1dlmMO = dkOlp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOdlp1lmMO"]
+Close[dkOdnMlp1]; Close[dkOdkMlp1]; Close[dkOdhMlp1]; Close[dkOdpMlp1]; \
+Close[dkOdqMlp1]; Close[dkOdlmMlp1];
+
+dpOdnMlp1 := OpenWrite["dpOlp1dnM.m"];
+dpOdkMlp1 := OpenWrite["dpOlp1dkM.m"];
+dpOdhMlp1 := OpenWrite["dpOlp1dhM.m"];
+dpOdpMlp1 := OpenWrite["dpOlp1dpM.m"];
+dpOdqMlp1 := OpenWrite["dpOlp1dqM.m"];
+dpOdlmMlp1 := OpenWrite["dpOlp1dlmM.m"];
+
+WriteMatlab[DpOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dnOdnMlp1,
+   "function dpOlp1dnMO = dpOlp1dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dpOlp1dnMO"];
+
+WriteMatlab[
+ DpOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdkMlp1, "function dpOlp1dkMO = dpOlp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOlp1dkMO"]
+
+WriteMatlab[
+ DpOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdhMlp1, "function dpOlp1dhMO = dpOlp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOlp1dhMO"]
+
+WriteMatlab[
+ DpOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdpMlp1, "function dpOlp1dpMO = dpOlp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOlp1dpMO"]
+
+WriteMatlab[
+ DpOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dpOdqMlp1, "function dpOlp1dqMO = dpOlp1dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOlp1dqMO"]
+
+WriteMatlab[
+ DpOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dpOdlmMlp1, "function dpOlp1dlmMO = dpOlp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOlp1dlmMO"]
+Close[dpOdnMlp1]; Close[dpOdkMlp1]; Close[dpOdhMlp1]; Close[dpOdpMlp1]; \
+Close[dpOdqMlp1]; Close[dpOdlmMlp1];
+
+dqOdnMlp1 := OpenWrite["dqOlp1dnM.m"];
+dqOdkMlp1 := OpenWrite["dqOlp1dkM.m"];
+dqOdhMlp1 := OpenWrite["dqOlp1dhM.m"];
+dqOdpMlp1 := OpenWrite["dqOlp1dpM.m"];
+dqOdqMlp1 := OpenWrite["dqOlp1dqM.m"];
+dqOdlmMlp1 := OpenWrite["dqOlp1dlmM.m"];
+
+WriteMatlab[DqOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dqOdnMlp1,
+   "function dqOlp1dnMO = dqOlp1dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOlp1dnMO"];
+
+WriteMatlab[
+ DqOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdkMlp1, "function dqOlp1dkMO = dqOlp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOlp1dkMO"]
+
+WriteMatlab[
+ DqOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdhMlp1, "function dqOlp1dhMO = dqOlp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOlp1dhMO"]
+
+WriteMatlab[
+ DqOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdpMlp1, "function dqOlp1dpMO = dqOlp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOlp1dpMO"]
+
+WriteMatlab[
+ DqOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdqMlp1, "function dqOlp1dqMO = dqOlp1dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOlp1dqMO"]
+
+WriteMatlab[
+ DqOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdlmMlp1, "function dqOlp1dlmMO = dqOlp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOlp1dlmMO"]
+Close[dqOdnMlp1]; Close[dqOdkMlp1]; Close[dqOdhMlp1]; Close[dqOdpMlp1]; \
+Close[dqOdqMlp1]; Close[dqOdlmMlp1];
+
+dlmOdnMlp1 := OpenWrite["dlmOlp1dnM.m"];
+dlmOdkMlp1 := OpenWrite["dlmOlp1dkM.m"];
+dlmOdhMlp1 := OpenWrite["dlmOlp1dhM.m"];
+dlmOdpMlp1 := OpenWrite["dlmOlp1dpM.m"];
+dlmOdqMlp1 := OpenWrite["dlmOlp1dqM.m"];
+dlmOdlmMlp1 := OpenWrite["dlmOlp1dlmM.m"];
+
+WriteMatlab[DlmOscDnMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dlmOdnMlp1, "function dnOlp1dnMO := dlmOlp1dnM(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmOlp1dnMO"];
+
+WriteMatlab[DlmOscDkMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dlmOdkMlp1, 
+  "function dlmOlp1dkMO := dlmOlp1dkM(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmOlp1dkMO"];
+
+WriteMatlab[DlmOscDhMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dlmOdhMlp1, 
+  "function dlmOlp1dhMO := dlmOlp1dhM(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmOlp1dhMO"];
+
+WriteMatlab[DlmOscDpMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dlmOdnMlp1, 
+  "function dlmOlp1dpMO := dlmOlp1dpM(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmOlp1dpMO"];
+
+WriteMatlab[DlmOscDqMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dlmOdqMlp1, 
+  "function dlmOlp1dqMO := dlmOlp1dqM(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmOlp1dqMO"];
+
+WriteMatlab[DlmOscDlmMeanlp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dlmOdlmMlp1, 
+  "function dlmOlp1dlmMO := dlmOlp1dlmM(J2,n0,k0,h0,p0,q0,lm0,rE,mu)\n
+  dlmOlp1dlmMO"];
+
+Close[dlmOdnMlp1]; Close[dlmOdkMlp1]; Close[dlmOdhMlp1]; Close[dlmOdpMlp1]; \
+Close[dlmOdqMlp1]; Close[dlmOdlmMlp1];
+
+Now lets do the D matrix for the short period first order
+
+DnOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DnOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DnOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DnOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DnOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DnOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DhOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DhOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DhOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DhOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DhOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DhOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DkOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DkOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DkOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DkOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DkOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DkOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DqOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DqOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DqOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DqOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DqOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DqOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DpOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DpOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DpOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DpOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DpOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DpOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DlmOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DlmOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DlmOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DlmOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DlmOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DlmOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp1[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DpOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_]
+
+
+
+dnOdnMsp1 := OpenWrite["dnOsp1dnM.m"];
+dnOdkMsp1 := OpenWrite["dnOsp1dkM.m"];
+dnOdhMsp1 := OpenWrite["dnOsp1dhM.m"];
+dnOdpMsp1 := OpenWrite["dnOsp1dpM.m"];
+dnOdqMsp1 := OpenWrite["dnOsp1dqM.m"];
+dnOdlmMsp1 := OpenWrite["dnOsp1dlmM.m"];
+
+
+
+WriteMatlab[DnOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dnOdnMsp1,
+   "function dnOsp1dnMO := dnOsp1dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOsp1dnMO"];
+
+WriteMatlab[
+ DnOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdhMsp1, "function dnOsp1dkMO = dnOsp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dnOsp1dkMO"]
+
+WriteMatlab[
+ DnOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdhMsp1, "function dnOsp1dhMO = dnOsp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dnOsp1dhMO"]
+
+WriteMatlab[
+ DnOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdpMsp1, "function dnOsp1dpMO = dnOsp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dnOsp1dpMO"]
+
+WriteMatlab[
+ DnOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdqMsp1, "function dnOsp1dqMO = dnOsp1dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dnOsp1dqMO"]
+
+WriteMatlab[
+ DnOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdlmMsp1, "function dnOsp1dlmMO = dnOsp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dnOsp1dlmMO"]
+Close[dnOdnMsp1]; Close[dnOdkMsp1]; Close[dnOdhMsp1]; Close[dnOdpMsp1]; \
+Close[dnOdqMsp1]; Close[dnOdlmMsp1];
+
+dhOdnMsp1 := OpenWrite["dhOsp1dnM.m"];
+dhOdkMsp1 := OpenWrite["dhOsp1dkM.m"];
+dhOdhMsp1 := OpenWrite["dhOsp1dhM.m"];
+dhOdpMsp1 := OpenWrite["dhOsp1dpM.m"];
+dhOdqMsp1 := OpenWrite["dhOsp1dqM.m"];
+dhOdlmMsp1 := OpenWrite["dhOsp1dlmM.m"];
+
+WriteMatlab[DhOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dhOdnMsp1,
+   "function dhOsp1dnMO = dhOsp1dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dhOsp1dnMO"];
+
+WriteMatlab[
+ DhOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dhOdkMsp1, "function dhOsp1dkMO = dhOsp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dhOsp1dkMO"]
+
+WriteMatlab[
+ DhOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dhOdnMsp1, "function dhOsp1dhMO = dhOsp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dhOsp1dhMO"]
+
+WriteMatlab[
+ DhOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dhOdnMsp1, "function dhOsp1dpMO = dhOsp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dhOsp1dpMO"]
+
+WriteMatlab[
+ DhOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dhOdqMsp1, "function dhOsp1dqMO = dhOsp1dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dhOsp1dqMO"]
+
+WriteMatlab[
+ DhOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dhOdlmMsp1, "function dhOsp1dlmMO = dhOsp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dhOsp1dlmMO"]
+Close[dhOdnMsp1]; Close[dhOdkMsp1]; Close[dhOdhMsp1]; Close[dhOdpMsp1]; \
+Close[dhOdqMsp1]; Close[dhOdlmMsp1];
+
+dkOdnMsp1 := OpenWrite["dkOsp1dnM.m"];
+dkOdkMsp1 := OpenWrite["dkOsp1dkM.m"];
+dkOdhMsp1 := OpenWrite["dkOsp1dhM.m"];
+dkOdpMsp1 := OpenWrite["dkOsp1dpM.m"];
+dkOdqMsp1 := OpenWrite["dkOsp1dqM.m"];
+dkOdlmMsp1 := OpenWrite["dkOsp1dlmM.m"];
+
+WriteMatlab[DkOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dkOdnMsp1,
+   "function dkOsp1dnMO = dkOsp1dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dkOsp1dnMO"];
+
+WriteMatlab[
+ DkOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdkMsp1, "function dkOsp1dkMO = dkOsp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOsp1dkMO"]
+
+WriteMatlab[
+ DkOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdhMsp1, "function dkOsp1dhMO = dkOsp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOsp1dhMO"]
+
+WriteMatlab[DkOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dkOdpMsp1,
+   "function dkOsp1dpMO = dkOsp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dkOsp1dpMO"];
+
+WriteMatlab[DkOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dkOdqMsp1,
+   "function dkOsp1dqMO = dkOsp1dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dkOsp1dqMO"];
+
+WriteMatlab[DnOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dkOdlmMsp1, "function dkOsp1dlmMO = dkOsp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dkOdsp1lmMO"];
+
+Close[dkOdnMsp1]; Close[dkOdkMsp1]; Close[dkOdhMsp1]; Close[dkOdpMsp1]; \
+Close[dkOdqMsp1]; Close[dkOdlmMsp1];
+
+dpOdnMsp1 := OpenWrite["dpOsp1dnM.m"];
+dpOdkMsp1 := OpenWrite["dpOsp1dkM.m"];
+dpOdhMsp1 := OpenWrite["dpOsp1dhM.m"];
+dpOdpMsp1 := OpenWrite["dpOsp1dpM.m"];
+dpOdqMsp1 := OpenWrite["dpOsp1dqM.m"];
+dpOdlmMsp1 := OpenWrite["dpOsp1dlmM.m"];
+
+WriteMatlab[DpOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dnOdnMsp1,
+   "function dpOsp1dnMO = dpOsp1dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dpOsp1dnMO"];
+
+WriteMatlab[
+ DpOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdkMsp1, "function dpOsp1dkMO = dpOsp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOsp1dkMO"]
+
+WriteMatlab[
+ DpOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdhMsp1, "function dpOsp1dhMO = dpOsp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOsp1dhMO"]
+
+WriteMatlab[
+ DpOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdpMsp1, "function dpOsp1dpMO = dpOsp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOsp1dpMO"]
+
+WriteMatlab[
+ DpOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dpOdqMsp1, "function dpOsp1dqMO = dpOsp1dqM(J2,n,k,h,p,q,lm0,rE,mu)\n
+ dpOsp1dqMO"]
+
+WriteMatlab[
+ DpOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dpOdlmMsp1, "function dpOsp1dlmMO = dpOsp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOsp1dlmMO"]
+Close[dpOdnMsp1]; Close[dpOdkMsp1]; Close[dpOdhMsp1]; Close[dpOdpMsp1]; \
+Close[dpOdqMsp1]; Close[dpOdlmMsp1];
+
+dqOdnMsp1 := OpenWrite["dqOsp1dnM.m"];
+dqOdkMsp1 := OpenWrite["dqOsp1dkM.m"];
+dqOdhMsp1 := OpenWrite["dqOsp1dhM.m"];
+dqOdpMsp1 := OpenWrite["dqOsp1dpM.m"];
+dqOdqMsp1 := OpenWrite["dqOsp1dqM.m"];
+dqOdlmMsp1 := OpenWrite["dqOsp1dlmM.m"];
+
+WriteMatlab[DqOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dqOdnMsp1,
+   "function dqOsp1dnMO = dqOsp1dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOsp1dnMO"];
+
+WriteMatlab[
+ DqOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdkMsp1, "function dqOsp1dkMO = dqOsp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOsp1dkMO"]
+
+WriteMatlab[
+ DqOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdhMsp1, "function dqOsp1dhMO = dqOsp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOsp1dhMO"]
+
+WriteMatlab[
+ DqOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdpMsp1, "function dqOsp1dpMO = dqOsp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOsp1dpMO"]
+
+WriteMatlab[
+ DqOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdqMsp1, "function dqOsp1dqMO = dqOsp1dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOsp1dqMO"]
+
+WriteMatlab[
+ DqOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdlmMsp1, "function dqOsp1dlmMO = dqOsp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOsp1dlmMO"]
+Close[dqOdnMsp1]; Close[dqOdkMsp1]; Close[dqOdhMsp1]; Close[dqOdpMsp1]; \
+Close[dqOdqMsp1]; Close[dqOdlmMsp1];
+
+dlmOdnMsp1 := OpenWrite["dlmOsp1dnM.m"];
+dlmOdkMsp1 := OpenWrite["dlmOsp1dkM.m"];
+dlmOdhMsp1 := OpenWrite["dlmOsp1dhM.m"];
+dlmOdpMsp1 := OpenWrite["dlmOsp1dpM.m"];
+dlmOdqMsp1 := OpenWrite["dlmOsp1dqM.m"];
+dlmOdlmMsp1 := OpenWrite["dlmOsp1dlmM.m"];
+
+WriteMatlab[DlmOscDnMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dlmOdnMsp1, "function dnOsp1dnMO = dlmOsp1dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dlmOsp1dnMO"];
+
+WriteMatlab[
+ DlmOscDkMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dlmOdkMsp1, "function dlmOsp1dkMO = dlmOsp1dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dlmOsp1dkMO"]
+
+WriteMatlab[
+ DlmOscDhMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dlmOdhMsp1, "function dlmOsp1dhMO = dlmOsp1dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dlmOsp1dhMO"]
+
+WriteMatlab[
+ DlmOscDpMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dlmOdnMsp1, "function dlmOsp1dpMO = dlmOsp1dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dlmOsp1dpMO"]
+
+WriteMatlab[
+ DlmOscDqMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dlmOdqMsp1, "function dlmOsp1dqMO = dlmOsp1dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dlmOsp1dqMO"]
+
+WriteMatlab[
+ DlmOscDlmMeansp1[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dlmOdlmMsp1, "function dlmOsp1dlmMO = \
+dlmOsp1dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dlmOsp1dlmMO"]
+Close[dlmOdnMsp1]; Close[dlmOdkMsp1]; Close[dlmOdhMsp1]; Close[dlmOdpMsp1]; \
+Close[dlmOdqMsp1]; Close[dlmOdlmMsp1];
+
+Now for the 2nd order short period portion
+
+DnOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DnOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DnOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DnOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DnOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DnOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[nW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DhOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DhOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DhOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DhOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DhOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DhOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[hW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DkOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DkOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DkOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DkOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DkOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DkOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[kW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DqOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DqOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DqOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DqOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DqOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DqOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[qW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DpOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DpOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DpOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DpOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DpOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DpOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[pW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+DlmOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], n];
+
+DlmOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], h];
+
+DlmOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], k];
+
+DlmOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], p];
+
+DlmOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], q];
+
+DlmOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_] := 
+  J2*rE^2*D[lmW1sp2[l[h, k, lm], g[q, p], hDel[h, k, q, p], L[n, mu], 
+     G[n, mu, h, k], H[n, mu, h, k, p, q], n, h, k, q, p, lm, mu, J2, rE], 
+    lm];
+
+
+
+dnOdnMsp2 := OpenWrite["dnOsp2dnM.m"];
+dnOdkMsp2 := OpenWrite["dnOsp2dkM.m"];
+dnOdhMsp2 := OpenWrite["dnOsp2dhM.m"];
+dnOdpMsp2 := OpenWrite["dnOsp2dpM.m"];
+dnOdqMsp2 := OpenWrite["dnOsp2dqM.m"];
+dnOdlmMsp2 := OpenWrite["dnOsp2dlmM.m"];
+
+
+
+WriteMatlab[DnOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dnOdnMsp2,
+   "function dnOsp2dnMO = dnOsp2dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOsp2dnMO"];
+
+DnOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_]
+
+WriteMatlab[
+ DnOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdhMsp2, "function dnOsp2dkMO = dnOsp2dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dnOsp2dkMO"]
+
+WriteMatlab[
+ DnOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdhMsp2, "function dnOsp2dhMO = dnOsp2dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dnOsp2dhMO"]
+
+WriteMatlab[
+ DnOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdpMsp2, "function dnOsp2dpMO = dnOsp2dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dnOsp2dpMO"]
+
+WriteMatlab[
+ DnOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdqMsp2, "function dnOsp2dqMO = dnOsp2dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dnOsp2dqMO"]
+
+WriteMatlab[
+ DnOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdlmMsp2, "function dnOsp2dlmMO = dnOsp2dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dnOsp2dlmMO"]
+Close[dnOdnMsp2]; Close[dnOdkMsp2]; Close[dnOdhMsp2]; Close[dnOdpMsp2]; \
+Close[dnOdqMsp2]; Close[dnOdlmMsp2];
+
+dhOdnMsp2 := OpenWrite["dhOsp2dnM.m"];
+dhOdkMsp2 := OpenWrite["dhOsp2dkM.m"];
+dhOdhMsp2 := OpenWrite["dhOsp2dhM.m"];
+dhOdpMsp2 := OpenWrite["dhOsp2dpM.m"];
+dhOdqMsp2 := OpenWrite["dhOsp2dqM.m"];
+dhOdlmMsp2 := OpenWrite["dhOsp2dlmM.m"];
+
+WriteMatlab[DhOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dhOdnMsp2,
+   "function dhOsp2dnMO = dhOsp2dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dhOsp2dnMO"];
+
+WriteMatlab[
+ DhOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dhOdkMsp2, "function dhOsp2dkMO = dhOsp2dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dhOsp2dkMO"]
+
+WriteMatlab[
+ DhOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dhOdnMsp2, "function dhOsp2dhMO = dhOsp2dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dhOsp2dhMO"]
+
+WriteMatlab[
+ DhOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dhOdnMsp2, "function dhOsp2dpMO = dhOsp2dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dhOsp2dpMO"]
+
+WriteMatlab[
+ DhOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dhOdqMsp2, "function dhOsp2dqMO = dhOsp2dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dhOsp2dqMO"]
+
+DhOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_]
+
+WriteMatlab[
+ DhOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dhOdlmMsp2, "function dhOsp2dlmMO = dhOsp2dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dhOsp2dlmMO"]
+Close[dhOdnMsp2]; Close[dhOdkMsp2]; Close[dhOdhMsp2]; Close[dhOdpMsp2]; \
+Close[dhOdqMsp2]; Close[dhOdlmMsp2];
+
+dkOdnMsp2 := OpenWrite["dkOsp2dnM.m"];
+dkOdkMsp2 := OpenWrite["dkOsp2dkM.m"];
+dkOdhMsp2 := OpenWrite["dkOsp2dhM.m"];
+dkOdpMsp2 := OpenWrite["dkOsp2dpM.m"];
+dkOdqMsp2 := OpenWrite["dkOsp2dqM.m"];
+dkOdlmMsp2 := OpenWrite["dkOsp2dlmM.m"];
+
+WriteMatlab[DkOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dkOdnMsp2,
+   "function dkOsp2dnMO = dkOsp2dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dkOsp2dnMO"];
+
+WriteMatlab[
+ DkOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdkMsp2, "function dkOsp2dkMO = dkOsp2dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOsp2dkMO"]
+
+WriteMatlab[
+ DkOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdhMsp2, "function dkOsp2dhMO = dkOsp2dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOsp2dhMO"]
+
+WriteMatlab[
+ DkOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdpMsp2, "function dkOsp2dpMO = dkOsp2dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOsp2dpMO"]
+
+WriteMatlab[
+ DkOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdqMsp2, "function dkOsp2dqMO = dkOsp2dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOsp2dqMO"]
+
+WriteMatlab[
+ DnOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dkOdlmMsp2, "function dkOsp2dlmMO = dkOsp2dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dkOdsp2lmMO"]
+Close[dkOdnMsp2]; Close[dkOdkMsp2]; Close[dkOdhMsp2]; Close[dkOdpMsp2]; \
+Close[dkOdqMsp2]; Close[dkOdlmMsp2];
+
+dpOdnMsp2 := OpenWrite["dpOsp2dnM.m"];
+dpOdkMsp2 := OpenWrite["dpOsp2dkM.m"];
+dpOdhMsp2 := OpenWrite["dpOsp2dhM.m"];
+dpOdpMsp2 := OpenWrite["dpOsp2dpM.m"];
+dpOdqMsp2 := OpenWrite["dpOsp2dqM.m"];
+dpOdlmMsp2 := OpenWrite["dpOsp2dlmM.m"];
+
+WriteMatlab[DpOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dnOdnMsp2,
+   "function dpOsp2dnMO = dpOsp2dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dpOsp2dnMO"];
+
+WriteMatlab[
+ DpOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdkMsp2, "function dpOsp2dkMO = dpOsp2dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOsp2dkMO"]
+
+WriteMatlab[
+ DpOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdhMsp2, "function dpOsp2dhMO = dpOsp2dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOsp2dhMO"]
+
+WriteMatlab[
+ DpOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dnOdpMsp2, "function dpOsp2dpMO = dpOsp2dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOsp2dpMO"]
+
+WriteMatlab[
+ DpOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dpOdqMsp2, "function dpOsp2dqMO = dpOsp2dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOsp2dqMO"]
+
+WriteMatlab[
+ DpOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dpOdlmMsp2, "function dpOsp2dlmMO = dpOsp2dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dpOsp2dlmMO"]
+Close[dpOdnMsp2]; Close[dpOdkMsp2]; Close[dpOdhMsp2]; Close[dpOdpMsp2]; \
+Close[dpOdqMsp2]; Close[dpOdlmMsp2];
+
+dqOdnMsp2 := OpenWrite["dqOsp2dnM.m"];
+dqOdkMsp2 := OpenWrite["dqOsp2dkM.m"];
+dqOdhMsp2 := OpenWrite["dqOsp2dhM.m"];
+dqOdpMsp2 := OpenWrite["dqOsp2dpM.m"];
+dqOdqMsp2 := OpenWrite["dqOsp2dqM.m"];
+dqOdlmMsp2 := OpenWrite["dqOsp2dlmM.m"];
+
+WriteMatlab[DqOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], dqOdnMsp2,
+   "function dqOsp2dnMO = dqOsp2dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dnOsp2dnMO"];
+
+WriteMatlab[
+ DqOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdkMsp2, "function dqOsp2dkMO = dqOsp2dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOsp2dkMO"]
+
+WriteMatlab[
+ DqOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdhMsp2, "function dqOsp2dhMO = dqOsp2dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOsp2dhMO"]
+
+WriteMatlab[
+ DqOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdpMsp2, "function dqOsp2dpMO = dqOsp2dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOsp2dpMO"]
+
+WriteMatlab[
+ DqOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdqMsp2, "function dqOsp2dqMO = dqOsp2dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOsp2dqMO"]
+
+WriteMatlab[
+ DqOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dqOdlmMsp2, "function dqOsp2dlmMO = dqOsp2dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dqOsp2dlmMO"]
+Close[dqOdnMsp2]; Close[dqOdkMsp2]; Close[dqOdhMsp2]; Close[dqOdpMsp2]; \
+Close[dqOdqMsp2]; Close[dqOdlmMsp2];
+
+dlmOdnMsp2 := OpenWrite["dlmOsp2dnM.m"];
+dlmOdkMsp2 := OpenWrite["dlmOsp2dkM.m"];
+dlmOdhMsp2 := OpenWrite["dlmOsp2dhM.m"];
+dlmOdpMsp2 := OpenWrite["dlmOsp2dpM.m"];
+dlmOdqMsp2 := OpenWrite["dlmOsp2dqM.m"];
+dlmOdlmMsp2 := OpenWrite["dlmOsp2dlmM.m"];
+
+WriteMatlab[DlmOscDnMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, rE_], 
+  dlmOdnMsp2, "function dnOsp2dnMO = dlmOsp2dnM(J2,n,k,h,p,q,lm,rE,mu)\n
+  dlmOsp2dnMO"];
+
+WriteMatlab[
+ DlmOscDkMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dlmOdkMsp2, "function dlmOsp2dkMO = dlmOsp2dkM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dlmOsp2dkMO"]
+
+WriteMatlab[
+ DlmOscDhMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dlmOdhMsp2, "function dlmOsp2dhMO = dlmOsp2dhM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dlmOsp2dhMO"]
+
+WriteMatlab[
+ DlmOscDpMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dlmOdnMsp2, "function dlmOsp2dpMO = dlmOsp2dpM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dlmOsp2dpMO"]
+
+WriteMatlab[
+ DlmOscDqMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dlmOdqMsp2, "function dlmOsp2dqMO = dlmOsp2dqM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dlmOsp2dqMO"]
+
+WriteMatlab[
+ DlmOscDlmMeansp2[n_, h_, k_, q_, p_, lm_, mu_, J2_, 
+  rE_], dlmOdlmMsp2, "function dlmOsp2dlmMO = \
+dlmOsp2dlmM(J2,n,k,h,p,q,lm,rE,mu)\n
+ dlmOsp2dlmMO"]
+Close[dlmOdnMsp2]; Close[dlmOdkMsp2]; Close[dlmOdhMsp2]; Close[dlmOdpMsp2]; \
+Close[dlmOdqMsp2]; Close[dlmOdlmMsp2];
+
